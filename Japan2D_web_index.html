@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#d3d3d3">
+<title>Japan 2D - Millionaire</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Arial,Helvetica,sans-serif;background:#e9e8ee;color:#111}
+body{overscroll-behavior:none}
+html{font-size:16px}
+.app,.screen{transform-origin:top left}
+.app,.screen{width:100%;height:100%;background:#e9e8ee;overflow:hidden}
+.screen{margin:0;padding:0;position:relative}
+/* Exact phone-screen reference geometry. Reference screenshot: 691x1536. */
+.header{width:100%;height:24.0232vw;min-height:24.0232vw;background:#20a9d5;color:#111;position:relative;overflow:hidden}
+.title{position:absolute;left:19.1028vw;top:10.275vw;margin:0;font-size:5.499vw;line-height:6.37vw;font-weight:500;color:#111;white-space:nowrap;z-index:3;display:flex;align-items:center;height:6.37vw}.jp-flag{display:inline-block;margin-left:1.55vw;font-size:5.10vw;line-height:1;transform:translateY(-.10vw)}
+.back-home{position:absolute;left:4.34vw;top:6.37vw;width:6.95vw;height:6.95vw;padding:0;border:0;background:transparent;z-index:6;display:flex;align-items:center;justify-content:center}.back-home svg{width:6.37vw;height:6.37vw;display:block;fill:#111}
+.daily-icon{position:absolute;right:15.05vw;top:6.37vw;width:6.95vw;height:6.95vw;padding:0;border:0;background:transparent;z-index:5;cursor:pointer;display:flex;align-items:center;justify-content:center}.daily-icon svg{width:6.66vw;height:6.66vw;display:block;fill:#111}
+.list-button{position:absolute;right:4.20vw;top:6.37vw;width:6.95vw;height:6.95vw;padding:0;border:0;background:transparent;z-index:5;cursor:pointer;display:flex;align-items:center;justify-content:center}.list-button svg{width:6.66vw;height:6.66vw;display:block;fill:#111}
+.main-result{width:92.1852vw;height:50.0724vw;margin:4.0455vw 3.9074vw 0;background:#fff;border-radius:4.05vw;position:relative;box-shadow:0 .29vw .72vw rgba(0,0,0,.20);display:flex;align-items:flex-start;justify-content:center;transform:translateY(-0.15in)}
+.main-result-value{line-height:1;font-size:13.314vw;font-weight:700;color:#8bcf93;margin-top:14.036vw;position:relative;z-index:2}
+.main-result-value.auto-blink{font-size:13.314vw;animation:none}
+.main-updated{position:absolute;left:0;right:0;bottom:8.395vw;text-align:center;color:#111;font-size:4.3415vw;font-weight:400;white-space:nowrap}
+.results-grid{width:92.1852vw;margin:4.4863vw 3.9074vw 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:3.184vw;row-gap:3.7627vw;transform:translateY(-0.15in)}
+.time-card{height:34.0087vw;border-radius:3.91vw;overflow:hidden;background:#4cb950;position:relative}
+.time{height:auto;background:transparent;color:#fff;display:flex;align-items:flex-start;justify-content:center;text-align:center;padding-top:6.657vw;font-size:5.065vw;font-weight:500;position:static;white-space:nowrap}
+.time:after{content:"";position:absolute;left:3.76vw;right:3.76vw;top:15.63vw;height:.29vw;background:rgba(255,255,255,.78)}
+.value{position:absolute!important;left:0!important;right:0!important;top:20.26vw!important;height:auto!important;margin:0!important;background:transparent!important;color:#eaff00!important;display:flex!important;align-items:center;justify-content:center;font-size:6.947vw;font-weight:500;z-index:3}
+.nav-grid{display:none}
+.footer{display:block;text-align:center;color:#999;font-size:4.34vw;font-weight:400;margin-top:5.5vw;margin-bottom:3.6vw}.footer:after{content:"Japan 2D 🇯🇵"}
+/* Existing controller-driven pages */
+.page{display:none;position:fixed;z-index:50;inset:0;width:100%;max-width:none;margin:0;background:#e9e8ee;overflow:auto;padding:0 3.91vw 4.34vw}
+.page.active{display:block}
+.page-header{min-height:16.79vw;background:#20a9d5;color:#111;border-radius:0;display:flex;align-items:center;gap:1.74vw;padding:1.74vw 2.60vw;position:sticky;top:0;z-index:2}
+.page-header h2{margin:0;font-size:5.21vw;font-weight:500;flex:1}
+#pageContent{position:relative;top:-10px;transform:none} /* Calendar Next Page: all tables/boxes move up exactly 10px */
+.back{width:6.37vw;height:6.37vw;border:0;background:transparent;color:#111;font-size:7.52vw;line-height:1;cursor:pointer}
+.remote-card{margin-top:2.60vw;background:#fff;border-radius:3.47vw;overflow:hidden;box-shadow:0 .29vw .58vw rgba(0,0,0,.16)}
+.remote-label{background:#4cb950;color:#fff;padding:2.60vw;font-size:3.47vw;font-weight:500}
+.remote-value{min-height:14.47vw;background:#fff;color:#4cb950;display:flex;align-items:center;justify-content:center;font-size:5.79vw;font-weight:700}
+.daily-table{margin-top:2.60vw;width:100%;background:#fff;border-radius:2.89vw;overflow:hidden;box-shadow:0 .29vw .58vw rgba(0,0,0,.16)}
+.daily-date-row{display:grid;grid-template-columns:34% 66%;height:7.52vw;border-bottom:.29vw solid #ddd}
+.daily-table-label{background:#4cb950;color:#fff;display:flex;align-items:center;padding:.87vw 2.31vw;font-size:2.89vw;font-weight:600}
+.daily-table-value{height:7.52vw;display:flex;align-items:center;justify-content:center;color:#111;font-size:3.47vw;font-weight:700}
+.daily-result-row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));width:100%}
+.daily-cell{min-width:0;border-right:.14vw solid #ddd}.daily-cell:last-child{border-right:0}
+.daily-cell-label{height:7.52vw;background:#4cb950;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;font-size:1.74vw;white-space:nowrap}
+.daily-cell-value{height:8.68vw;background:#fff;color:#4cb950;display:flex;align-items:center;justify-content:center;text-align:center;font-size:3.47vw;font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <main class="screen">
+    <section class="header">
+      <button class="back-home" aria-label="Back">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      </button>
+      <div class="title">Japan 2D <span class="jp-flag" aria-hidden="true">🇯🇵</span></div>
+      <button class="daily-icon" onclick="openPage('daily')" aria-label="Calendar">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <!-- Calendar icon rebuilt to match the supplied reference: thick black rounded body,
+               two short top tabs, cyan inner panel and six black square cells. -->
+          <rect x="5.05" y="1.10" width="3.05" height="5.10" rx="0.35"/>
+          <rect x="15.90" y="1.10" width="3.05" height="5.10" rx="0.35"/>
+          <rect x="2.05" y="3.65" width="19.90" height="19.05" rx="2.20"/>
+          <rect x="4.15" y="9.65" width="15.70" height="11.10" rx="0.10" fill="#20a9d5"/>
+          <rect x="6.35" y="11.95" width="2.75" height="2.75" rx="0.05"/>
+          <rect x="10.65" y="11.95" width="2.75" height="2.75" rx="0.05"/>
+          <rect x="14.95" y="11.95" width="2.75" height="2.75" rx="0.05"/>
+          <rect x="6.35" y="15.75" width="2.75" height="2.75" rx="0.05"/>
+          <rect x="10.65" y="15.75" width="2.75" height="2.75" rx="0.05"/>
+          <rect x="14.95" y="15.75" width="2.75" height="2.75" rx="0.05"/>
+        </svg>
+      </button>
+      <button class="list-button" onclick="openPage('daily')" aria-label="Results List">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zM4 4c-.83 0-1.5.67-1.5 1.5S3.17 7 4 7s1.5-.67 1.5-1.5S4.83 4 4 4zm0 13c-.83 0-1.5.67-1.5 1.5S3.17 20 4 20s1.5-.67 1.5-1.5S4.83 17 4 17zm4-7v4h14v-4H8zm0-6v4h14V4H8zm0 13h14v-4H8v4z"/></svg>
+      </button>
+    </section>
+
+    <section class="main-result" id="mainResult">
+      <div class="main-result-value" id="mainResultValue">- -</div>
+      <div class="main-updated" id="mainUpdated">Update : --</div>
+    </section>
+
+    <section class="results-grid">
+      <div class="time-card"><div class="time">11:00 AM</div><div class="value" id="r11">- -</div></div>
+      <div class="time-card"><div class="time">1:00 PM</div><div class="value" id="r13">- -</div></div>
+      <div class="time-card"><div class="time">03:00 PM</div><div class="value" id="r15">- -</div></div>
+      <div class="time-card"><div class="time">05:00 PM</div><div class="value" id="r17">- -</div></div>
+      <div class="time-card"><div class="time">07:00 PM</div><div class="value" id="r19">- -</div></div>
+      <div class="time-card"><div class="time">09:00 PM</div><div class="value" id="r21">- -</div></div>
+    </section>
+
+    <section class="nav-grid">
+      <button class="nav" onclick="openPage('thai3d')"><div class="icon flag"></div><span>Thai 3D<br>Results</span></button>
+      <button class="nav" onclick="openPage('american2d')"><div class="icon american-flag"></div><span>American 2D<br>Results</span></button>
+      <button class="nav" onclick="openPage('american3d')"><div class="icon american-flag"></div><span>American 3D<br>Results</span></button>
+      <button class="nav" onclick="openPage('holidays')"><div class="icon calendar"></div><span>Holidays</span></button>
+    </section>
+
+    <div class="footer"></div>
+
+    <!-- Next pages: all result/content fields are remote-controller targets -->
+    <section id="page" class="page" aria-hidden="true">
+      <div class="page-header">
+        <button class="back" onclick="closePage()">‹</button>
+        <h2 id="pageTitle">Daily Results</h2>
+       </div>
+      <div id="pageContent"></div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+const pageData = {
+  daily: {
+    title: 'Daily Results',
+    items: ['11:00 AM','1:00 PM','3:00 PM','5:00 PM','7:00 PM','9:00 PM']
+  },
+  thai3d: {
+    title: 'Thai 3D Results',
+    items: ['Thai 3D Result']
+  },
+  american2d: {
+    title: 'American 2D Results',
+    items: ['American 2D Result']
+  },
+  american3d: {
+    title: 'American 3D Results',
+    items: ['American 3D Result']
+  },
+  holidays: {
+    title: 'Holidays',
+    items: ['Holiday 1','Holiday 2','Holiday 3']
+  }
+};
+
+function openPage(key){
+  const data = pageData[key] || pageData.daily;
+  document.getElementById('pageTitle').textContent = data.title;
+  const content = document.getElementById('pageContent');
+  if(key === 'daily'){
+    renderDailyTables();
+  } else if(key === 'holidays'){
+    const holidays=Array.isArray(window.AME2D_REMOTE_HOLIDAYS)?window.AME2D_REMOTE_HOLIDAYS:[];
+    content.innerHTML=holidays.length?holidays.map((h,i)=>{ const text=(h && typeof h==='object') ? (h.name ?? h.text ?? h.title ?? h.description ?? h.value ?? '') : String(h ?? ''); const date=(h && typeof h==='object') ? (h.date ?? h.holidayDate ?? '') : ''; return `<div class="remote-card" data-controller-field="holidays_${i+1}"><div class="remote-label">${escapeHtml(date||'- -')}</div><div class="remote-value">${escapeHtml(text||'- -')}</div></div>`; }).join(''):'<div class="remote-card"><div class="remote-label">Holidays</div><div class="remote-value">- -</div></div>';
+  } else {
+    const rows=data.items.map((label,i) => `
+      <div class="remote-card" data-controller-field="${key}_${i+1}">
+        <div class="remote-label">${label}</div>
+        <div class="remote-value" id="${key}_${i+1}">- -</div>
+      </div>
+    `).join('');
+    const extras=(window.AME2D_REMOTE_PAGE_TABLES&&Array.isArray(window.AME2D_REMOTE_PAGE_TABLES[key]))?window.AME2D_REMOTE_PAGE_TABLES[key]:[];
+    content.innerHTML=rows+extras.map((t,i)=>`<div class="remote-card" data-controller-table="${escapeHtml(t.id||String(i))}"><div class="remote-label">${escapeHtml(t.title||'Table')}</div><div class="remote-value">${escapeHtml(t.value||'- -')}</div></div>`).join('');
+  }
+  document.getElementById('page').classList.add('active');
+  document.getElementById('page').setAttribute('aria-hidden','false');
+}
+
+function closePage(){
+  document.getElementById('page').classList.remove('active');
+  document.getElementById('page').setAttribute('aria-hidden','true');
+}
+
+
+// Daily Results can contain one table for every date uploaded by the Controller App.
+const dailyTables = [];
+
+function renderDailyTables(){
+  const content = document.getElementById('pageContent');
+  if(!content) return;
+
+  if(!dailyTables.length){
+    content.innerHTML = `
+      <div class="daily-table" data-controller-table="daily-results-empty">
+        <div class="daily-date-row">
+          <div class="daily-table-label">Date</div>
+          <div class="daily-table-value">- -</div>
+        </div>
+        <div class="daily-result-row">
+          ${pageData.daily.items.map(label => `
+            <div class="daily-cell">
+              <div class="daily-cell-label">${label}</div>
+              <div class="daily-cell-value">- -</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+    return;
+  }
+
+  content.innerHTML = dailyTables.map((table, tableIndex) => `
+    <div class="daily-table" data-controller-table="daily-results-${tableIndex+1}">
+      <div class="daily-date-row" data-controller-field="daily_${tableIndex+1}_date">
+        <div class="daily-table-label">Date</div>
+        <div class="daily-table-value">${escapeHtml(table.date || '- -')}</div>
+      </div>
+      <div class="daily-result-row">
+        ${pageData.daily.items.map((label,i) => `
+          <div class="daily-cell" data-controller-field="daily_${tableIndex+1}_${i+1}">
+            <div class="daily-cell-label">${label}</div>
+            <div class="daily-cell-value">${escapeHtml(table.results[i] || '- -')}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+  const extras=(window.AME2D_REMOTE_PAGE_TABLES&&Array.isArray(window.AME2D_REMOTE_PAGE_TABLES.daily))?window.AME2D_REMOTE_PAGE_TABLES.daily:[];
+  if(extras.length) content.innerHTML += extras.map((t,i)=>`<div class="remote-card" data-controller-table="${escapeHtml(t.id||String(i))}"><div class="remote-label">${escapeHtml(t.title||'Table')}</div><div class="remote-value">${escapeHtml(t.value||'- -')}</div></div>`).join('');
+}
+
+function escapeHtml(value){
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[ch]));
+}
+
+
+// Automatic Main Result preview: 00-99, changing every 4 seconds
+// until the Controller App uploads a Main Result.
+const mainAutoState = {
+  controllerUploaded: false,
+  timer: null
+};
+
+function randomMainResult(){
+  return String(Math.floor(Math.random() * 100)).padStart(2, '0');
+}
+
+function showAutomaticMainResult(){
+  if(mainAutoState.controllerUploaded) return;
+  const el = document.getElementById('mainResultValue');
+  if(el){
+    el.textContent = randomMainResult();
+    el.classList.add('auto-blink');
+  }
+  // While the automatic result is blinking, show the running Update: time.
+  mainClockState.label = 'Update :';
+  mainClockState.frozen = false;
+  mainClockState.frozenAt = null;
+  renderMainUpdated();
+}
+
+function startAutomaticMainResult(){
+  if(mainAutoState.controllerUploaded) return;
+  showAutomaticMainResult();
+  if(mainAutoState.timer) clearInterval(mainAutoState.timer);
+  mainAutoState.timer = setInterval(showAutomaticMainResult, 4000);
+}
+
+function stopAutomaticMainResult(){
+  if(mainAutoState.timer){
+    clearInterval(mainAutoState.timer);
+    mainAutoState.timer = null;
+  }
+}
+
+// Myanmar Time (UTC+06:30) clock for the Main Result Updated line.
+const MYANMAR_OFFSET_MS = (6 * 60 + 30) * 60 * 1000;
+const mainClockState = { frozen:false, frozenAt:null, restartAt:null, label:'Update :' };
+
+function myanmarNow(){
+  return new Date(Date.now() + MYANMAR_OFFSET_MS);
+}
+
+function pad2(n){ return String(n).padStart(2,'0'); }
+
+function formatMyanmarTime(date){
+  const y=date.getUTCFullYear();
+  const m=pad2(date.getUTCMonth()+1);
+  const d=pad2(date.getUTCDate());
+  let h=date.getUTCHours();
+  const ap=h>=12?'PM':'AM';
+  h=h%12 || 12;
+  return `${pad2(h)}:${pad2(date.getUTCMinutes())}:${pad2(date.getUTCSeconds())} ${ap} ${pad2(date.getUTCDate())}-${m}-${y}`;
+}
+
+function parseControllerMyanmarTime(input){
+  if(input instanceof Date) return input;
+  if(typeof input === 'number') return new Date(input);
+  const text=String(input || '').trim();
+  // ISO with explicit timezone: respect the supplied instant.
+  if(/[zZ]|[+-]\d{2}:?\d{2}$/.test(text)){
+    const d=new Date(text);
+    if(!Number.isNaN(d.getTime())) return new Date(d.getTime()+MYANMAR_OFFSET_MS);
+  }
+  // Controller-friendly Myanmar local time: YYYY-MM-DD HH:mm[:ss] [AM|PM]
+  const m=text.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*(AM|PM))?)?$/i);
+  if(m){
+    let h=Number(m[4] || 0), min=Number(m[5] || 0), sec=Number(m[6] || 0);
+    const ap=(m[7]||'').toUpperCase();
+    if(ap==='PM' && h<12) h+=12;
+    if(ap==='AM' && h===12) h=0;
+    return new Date(Date.UTC(Number(m[1]),Number(m[2])-1,Number(m[3]),h,min,sec)-MYANMAR_OFFSET_MS);
+  }
+  return null;
+}
+
+function renderMainUpdated(){
+  const el=document.getElementById('mainUpdated');
+  if(!el) return;
+  const now=myanmarNow();
+  // If the Controller allowed a restart time, resume only when Myanmar Time
+  // reaches that exact time.
+  if(mainClockState.frozen && mainClockState.restartAt && now.getTime() >= mainClockState.restartAt.getTime()){
+    mainClockState.frozen=false;
+    mainClockState.frozenAt=null;
+    mainClockState.restartAt=null;
+  }
+  const shown=mainClockState.frozen && mainClockState.frozenAt ? mainClockState.frozenAt : now;
+  el.textContent=mainClockState.label + ' ' + formatMyanmarTime(shown);
+}
+
+setInterval(renderMainUpdated,1000);
+renderMainUpdated();
+
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', function(){
+    startAutomaticMainResult();
+  }, {once:true});
+}else{
+  startAutomaticMainResult();
+}
+
+// Controller App integration points.
+// The controller can upload/update the Date and six Daily Results through these IDs.
+window.TargetController = {
+  // Add a new date table. results must contain up to 6 values:
+  // [11AM, 1PM, 3PM, 5PM, 7PM, 9PM]
+  addDailyTable(dateText, results){
+    const values = Array.isArray(results) ? results.slice(0,6) : [];
+    while(values.length < 6) values.push('- -');
+    dailyTables.push({date: dateText || '- -', results: values});
+    if(document.getElementById('page')?.classList.contains('active')){
+      renderDailyTables();
+    }
+    return dailyTables.length;
+  },
+  updateDailyTable(tableNumber, dateText, results){
+    const index = Number(tableNumber) - 1;
+    if(index < 0) return false;
+    while(dailyTables.length <= index){
+      dailyTables.push({date:'- -', results:['- -','- -','- -','- -','- -','- -']});
+    }
+    if(dateText !== undefined) dailyTables[index].date = dateText || '- -';
+    if(Array.isArray(results)){
+      const values = results.slice(0,6);
+      while(values.length < 6) values.push('- -');
+      dailyTables[index].results = values;
+    }
+    if(document.getElementById('page')?.classList.contains('active')){
+      renderDailyTables();
+    }
+    return true;
+  },
+  setDate(dateText){
+    if(!dailyTables.length){
+      this.addDailyTable(dateText, ['- -','- -','- -','- -','- -','- -']);
+    }else{
+      dailyTables[0].date = dateText || '- -';
+      renderDailyTables();
+    }
+  },
+  setDailyResult(slot, value){
+    if(!dailyTables.length){
+      this.addDailyTable('- -', ['- -','- -','- -','- -','- -','- -']);
+    }
+    const index = Number(slot) - 1;
+    if(index >= 0 && index < 6){
+      dailyTables[0].results[index] = value || '- -';
+      renderDailyTables();
+    }
+  },
+  setMainResult(value, allowedRestartAt){
+    // Controller upload takes over from the automatic 3-second display.
+    mainAutoState.controllerUploaded = true;
+    stopAutomaticMainResult();
+
+    const valueEl = document.getElementById('mainResultValue');
+    if(valueEl){
+      valueEl.classList.remove('auto-blink');
+      valueEl.textContent = String(value ?? '').padStart(2, '0') || '- -';
+    }
+
+    // Controller-uploaded result is static (no blink), while the Myanmar
+    // Updated clock continues running normally. Optional restart time is kept
+    // only for compatibility with the Controller API.
+    mainClockState.frozen = false;
+    mainClockState.frozenAt = null;
+    mainClockState.label = 'Update :';
+    if(allowedRestartAt !== undefined && allowedRestartAt !== null){
+      mainClockState.restartAt = parseControllerMyanmarTime(allowedRestartAt);
+    }
+    renderMainUpdated();
+    return myanmarNow().toISOString();
+  },
+  setMainResultRestartTime(allowedRestartAt){
+    mainClockState.restartAt = parseControllerMyanmarTime(allowedRestartAt);
+    renderMainUpdated();
+  },
+  resumeMainClock(){
+    mainClockState.frozen = false;
+    mainClockState.frozenAt = null;
+    mainClockState.restartAt = null;
+    mainClockState.label = 'Update :';
+    renderMainUpdated();
+
+    // Controller-authorized restart: automatic 00-99 display resumes.
+    mainAutoState.controllerUploaded = false;
+    startAutomaticMainResult();
+  }
+};
+
+
+window.addEventListener('pageshow', function(){
+  if(!mainAutoState.controllerUploaded){
+    startAutomaticMainResult();
+  }
+});
+
+/* ===== AME2D V13 Firebase Remote Control ===== */
+const AME2D_REMOTE = {
+  storageKey: 'ame2dRemoteConfigV1',
+  pollMs: 1500,
+  timer: null,
+  running: false,
+  busy: false,
+  lastRevision: 0
+};
+
+function ame2dRemoteConfig(){
+  try{return JSON.parse(localStorage.getItem(AME2D_REMOTE.storageKey)||'{}')}catch(e){return {}}
+}
+function setAME2DRemoteDatabaseUrl(url){
+  url=String(url||'').trim().replace(/\/+$/,'');
+  localStorage.setItem(AME2D_REMOTE.storageKey,JSON.stringify({databaseUrl:url}));
+  return !!url;
+}
+const AME2D_LEGACY_FIREBASE_URL='';
+const AME2D_DEFAULT_FIREBASE_URL='';
+function ame2dRemoteUrl(){
+  const saved=String(ame2dRemoteConfig().databaseUrl||'').replace(/\/+$/,'');
+  // Migrate the previous default endpoint automatically. Custom URLs remain usable.
+  if(!saved || saved===AME2D_LEGACY_FIREBASE_URL) return AME2D_DEFAULT_FIREBASE_URL;
+  return saved;
+}
+
+function renderRemoteHomeResult(value){
+  const el=document.getElementById('mainResultValue');
+  if(!el)return;
+  const v=String(value??'').trim();
+  if(/^\d{1,2}$/.test(v)){
+    el.textContent=v.padStart(2,'0');
+    el.classList.remove('auto-blink');
+  }else el.textContent='- -';
+}
+function clearRemoteHomeResult(){
+  stopAutomaticMainResult();
+  mainAutoState.controllerUploaded=false;
+  renderRemoteHomeResult('- -');
+}
+function applyAME2DRemoteState(root){
+  if(!root || typeof root!=='object')return;
+
+  // Main Result: controller value freezes automatic preview; absence clears it.
+  const mr=root.mainResult;
+  if(mr && mr.value!==undefined && mr.value!==null && String(mr.value)!==''){
+    if(mr.autoEnabled===true) window.TargetController.resumeMainClock();
+    else window.TargetController.setMainResult(mr.value);
+  }else{
+    clearRemoteHomeResult();
+    startAutomaticMainResult();
+  }
+
+  // Home six-slot results always reflect the first uploaded Daily table.
+  const first=(Array.isArray(root.dailyTables)&&root.dailyTables.length)?root.dailyTables[0]:null;
+  const vals=first && first.results ? first.results : {};
+  const slotKeys=['11AM','1PM','3PM','5PM','7PM','9PM'];
+  ['r11','r13','r15','r17','r19','r21'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el)el.textContent=String(vals[slotKeys[i]]||'- -');
+  });
+
+  // Replace Daily Results tables with controller data. Missing data clears them.
+  if(Array.isArray(root.dailyTables)){
+    dailyTables.length=0;
+    root.dailyTables.forEach(t=>{
+      const results=slotKeys.map(k=>String((t.results&&t.results[k])||'- -'));
+      dailyTables.push({date:String(t.date||'- -'),results});
+    });
+  }else dailyTables.length=0;
+
+  // Special result pages.
+  const special=(root.results&&typeof root.results==='object')?root.results:{};
+  const specialMap={thai3d:'Thai 3D Result',american2d:'American 2D Result',american3d:'American 3D Result',lucknumber:'Luck Number'};
+  Object.keys(specialMap).forEach(key=>{
+    const el=document.getElementById(key+'_1');
+    if(el)el.textContent=String(special[key]?.value||'- -');
+  });
+
+  // Page manager: append controller-created table cards to each supported page.
+  window.AME2D_REMOTE_PAGE_TABLES = root.pageTables || {};
+
+  // Holidays are rendered from controller rows.
+  window.AME2D_REMOTE_HOLIDAYS = Array.isArray(root.holidays)?root.holidays:[];
+
+  // Home navigation: preserve defaults unless controller supplies a list.
+  if(Array.isArray(root.navItems)) window.AME2D_REMOTE_NAV_ITEMS=root.navItems;
+
+  // Re-render current page if open.
+  const page=document.getElementById('page');
+  if(page && page.classList.contains('active')){
+    const title=String(document.getElementById('pageTitle')?.textContent||'');
+    const key=Object.keys(pageData).find(k=>pageData[k].title===title)||'daily';
+    openPage(key);
+  }
+
+  return true;
+}
+
+async function pollAME2DRemote(){
+  if(!AME2D_REMOTE.running || AME2D_REMOTE.busy)return;
+  const base=ame2dRemoteUrl();
+  if(!base)return;
+
+  AME2D_REMOTE.busy=true;
+  try{
+    const r=await fetch(base+'/americanTapp.json?ts='+Date.now(),{
+      cache:'no-store'
+    });
+    if(!r.ok)throw new Error('HTTP '+r.status);
+
+    const root=await r.json();
+    if(!root || typeof root!=='object')return;
+
+    const rev=Number(root.revision||0);
+    if(!rev || rev<=AME2D_REMOTE.lastRevision)return;
+
+    // Apply first. Revision is committed only after the target state
+    // has been applied successfully, so a failed apply can be retried.
+    await Promise.resolve(applyAME2DRemoteState(root));
+
+    const ackResponse=await fetch(base+'/americanTapp/ack.json',{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        revision:rev,
+        appliedAt:new Date().toISOString(),
+        source:'AME2D Target'
+      })
+    });
+    if(!ackResponse.ok)throw new Error('ACK HTTP '+ackResponse.status);
+
+    AME2D_REMOTE.lastRevision=rev;
+  }catch(e){
+    // Firebase control is optional; never break the existing AME2D UI.
+  }finally{
+    AME2D_REMOTE.busy=false;
+  }
+}
+function startAME2DRemoteControl(){
+  if(AME2D_REMOTE.running)return;
+  AME2D_REMOTE.running=true;
+  pollAME2DRemote();
+  AME2D_REMOTE.timer=setInterval(pollAME2DRemote,AME2D_REMOTE.pollMs);
+}
+function stopAME2DRemoteControl(){
+  AME2D_REMOTE.running=false;
+  if(AME2D_REMOTE.timer){clearInterval(AME2D_REMOTE.timer);AME2D_REMOTE.timer=null;}
+}
+window.AME2DRemote={
+  start:startAME2DRemoteControl,
+  stop:stopAME2DRemoteControl,
+  syncNow:pollAME2DRemote,
+  setDatabaseUrl:setAME2DRemoteDatabaseUrl,
+  getDatabaseUrl:ame2dRemoteUrl,
+  applyState:applyAME2DRemoteState
+};
+
+/* Existing target behavior remains unchanged when no Firebase URL is configured. */
+if(ame2dRemoteUrl()) startAME2DRemoteControl();
+
+
+
+</script>
+
+</body>
+</html>
